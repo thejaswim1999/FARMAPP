@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:farm_buddy/pages/CropModel.dart';
 import 'package:farm_buddy/pages/CropProvider.dart';
 import 'package:farm_buddy/pages/LocalStorageService.dart';
+import 'package:farm_buddy/main.dart'; // Import ThemeNotifier
 
 class HomePage extends StatelessWidget {
   void _logout(BuildContext context) async {
@@ -31,6 +32,16 @@ class HomePage extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.logout),
             onPressed: () => _logout(context),
+          ),
+          Consumer<ThemeNotifier>(
+            builder: (context, themeNotifier, child) {
+              return Switch(
+                value: themeNotifier.isDarkMode,
+                onChanged: (value) {
+                  themeNotifier.toggleTheme();
+                },
+              );
+            },
           ),
         ],
       ),

@@ -4,7 +4,7 @@ import 'package:farm_buddy/pages/CropModel.dart';
 class CropProvider extends ChangeNotifier {
   List<Crop> _crops = [];
   List<Crop> _harvestedCrops = [];
-
+  
   List<Crop> get crops => _crops;
   List<Crop> get harvestedCrops => _harvestedCrops;
 

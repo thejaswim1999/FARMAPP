@@ -5,13 +5,27 @@ import 'package:farm_buddy/pages/HomePage.dart';
 import 'package:farm_buddy/pages/HarvestPage.dart';
 import 'package:farm_buddy/pages/CropProvider.dart';
 import 'package:farm_buddy/pages/LocalStorageService.dart';
+import 'package:farm_buddy/pages/CropModel.dart'; // Import Crop from classmodel.dart
 import 'dart:html' as html;
 
+// A class to manage the theme state
+class ThemeNotifier extends ChangeNotifier {
+  bool _isDarkMode = false;
+
+  bool get isDarkMode => _isDarkMode;
+
+  ThemeMode get currentTheme => _isDarkMode ? ThemeMode.dark : ThemeMode.light;
+
+  void toggleTheme() {
+    _isDarkMode = !_isDarkMode;
+    notifyListeners();
+  }
+}
+
 void storeCredentials(String username, String password) {
-  html.window.localStorage['username'] = us ername;
+  html.window.localStorage['username'] = username;
   html.window.localStorage['password'] = password;
 }
-// import 'dart:html' as html;
 
 void printStoredCredentials() {
   final username = html.window.localStorage['username'];
@@ -29,31 +43,67 @@ class FarmBuddyApp extends StatelessWidget {
   void _logout(BuildContext context) async {
     final localStorageService = LocalStorageService();
     await localStorageService.clearUserCredentials();
-    Navigator.pushReplacementNamed(context, '/login');
+    Navigator.pushReplacementNamed(context, '/signin');
   }
+
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => CropProvider(),
-      child: MaterialApp(
-        theme: ThemeData.light(),
-        darkTheme: ThemeData.dark(),
-        themeMode: ThemeMode.system,
-        initialRoute: '/signin',
-        routes: {
-          '/signin': (context) => SignInPage(),
-          '/home': (context) => HomePage(),
-          '/harvest': (context) => HarvestPage(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => CropProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeNotifier()),
+      ],
+      child: Consumer<ThemeNotifier>(
+        builder: (context, themeNotifier, child) {
+          return MaterialApp(
+            theme: ThemeData(
+              primarySwatch: Colors.green,
+              brightness: Brightness.light,
+              visualDensity: VisualDensity.adaptivePlatformDensity,
+            ),
+            darkTheme: ThemeData(
+              primarySwatch: Colors.green,
+              brightness: Brightness.dark,
+              visualDensity: VisualDensity.adaptivePlatformDensity,
+            ),
+            themeMode: themeNotifier.currentTheme,
+            initialRoute: '/signin',
+            routes: {
+              '/signin': (context) => SignInPage(),
+              '/home': (context) => HomePage(),
+              '/harvest': (context) => HarvestPage(),
+              '/settings': (context) => SettingsPage(), // Add SettingsPage route
+            },
+            supportedLocales: [
+              const Locale('en', ''), // English
+              const Locale('es', ''), // Spanish
+            ],
+          );
         },
-        localizationsDelegates: [
-          // AppLocalization.delegate, // Your localization delegate here
-          // GlobalMaterialLocalizations.delegate,
-          // GlobalWidgetsLocalizations.delegate,
-        ],
-        supportedLocales: [
-          const Locale('en', ''), // English
-          const Locale('es', ''), // Spanish
-        ],
+      ),
+    );
+  }
+}
+
+class SettingsPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Settings'),
+      ),
+      body: Center(
+        child: Consumer<ThemeNotifier>(
+          builder: (context, themeNotifier, child) {
+            return SwitchListTile(
+              title: Text('Dark Mode'),
+              value: themeNotifier.isDarkMode,
+              onChanged: (value) {
+                themeNotifier.toggleTheme();
+              },
+            );
+          },
+        ),
       ),
     );
   }
